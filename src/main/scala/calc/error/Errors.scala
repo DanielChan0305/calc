@@ -9,7 +9,7 @@ case object UnexpectedError extends CustomError:
 
 case object TokenizationInvalidNumericalValueError extends CustomError:
     def message = "Invalid numerical values detected. \n" +
-                            "Integers should only consists of digits and decimals should only contain one dot"
+                            "Integers should only consists of digits and decimals should only contain one dot."
 
 case object TokenizationInvalidCharacterError extends CustomError:
     def message = "Invalid character detected."
