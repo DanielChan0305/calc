@@ -50,13 +50,15 @@ def lex(rawExpr: String): Either[CustomError, List[Tokens]] =
 
             // left param
             case '(' =>
+                consume
                 loop(LeftParam :: acc)
 
             // right param
             case ')' => 
+                consume
                 loop(RightParam :: acc)        
 
-            // variables or functions
+            // variables or functions   
             case _ if cur.isLetter =>
                 // get the word
                 var name = ""
