@@ -1,9 +1,9 @@
 package calc
 
-import config.Constants
-import error.CustomError
-import parser.{lex, Tokens}
-import scala.annotation.tailrec
+import calc.config.Constants
+import calc.error.CustomError
+import calc.parser.{lex, Tokens}
+import calc.scala.annotation.tailrec
 import calc.parser.printListTokens
 
 @main 
