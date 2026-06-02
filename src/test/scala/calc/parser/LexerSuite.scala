@@ -4,17 +4,69 @@ import calc.error.*
 
 class LexerSuite extends munit.FunSuite {
   test("Integer and Double Literals") {
-    assertEquals(lex("67 1.67 .67"), Right(List(IntLiteral(67), DoubleLiteral(1.67), DoubleLiteral(0.67))))
-    assertEquals(lex("-67   -1.67     -.67"), Right(List(Opt('-'), IntLiteral(67), Opt('-'), DoubleLiteral(1.67), Opt('-'), DoubleLiteral(0.67))))
-    assertEquals(lex("---5 "), Right(List(Opt('-'), Opt('-'), Opt('-'), IntLiteral(5))))
+    assertEquals(
+      lex("67 1.67 .67"),
+      Right(List(IntLiteral(67), DoubleLiteral(1.67), DoubleLiteral(0.67)))
+    )
+    assertEquals(
+      lex("-67   -1.67     -.67"),
+      Right(
+        List(
+          Opt('-'),
+          IntLiteral(67),
+          Opt('-'),
+          DoubleLiteral(1.67),
+          Opt('-'),
+          DoubleLiteral(0.67)
+        )
+      )
+    )
+    assertEquals(
+      lex("---5 "),
+      Right(List(Opt('-'), Opt('-'), Opt('-'), IntLiteral(5)))
+    )
 
     assertEquals(lex("65.66.67"), Left(TokenizationInvalidNumericalValueError))
     assertEquals(lex(".66.67"), Left(TokenizationInvalidNumericalValueError))
   }
 
   test("Expressions with only literals") {
-    assertEquals(lex("1 + 2 - 3 * 4 / 5 ^ 6"), Right(List(IntLiteral(1), Opt('+'), IntLiteral(2), Opt('-'), IntLiteral(3), Opt('*'), IntLiteral(4), Opt('/'), IntLiteral(5), Opt('^'), IntLiteral(6))))
-    assertEquals(lex("1.5 + 2.5 - 3.5 * 4.5 / 5.5 ^ 6.5"), Right(List(DoubleLiteral(1.5), Opt('+'), DoubleLiteral(2.5), Opt('-'), DoubleLiteral(3.5), Opt('*'), DoubleLiteral(4.5), Opt('/'), DoubleLiteral(5.5), Opt('^'), DoubleLiteral(6.5))))
+    assertEquals(
+      lex("1 + 2 - 3 * 4 / 5 ^ 6"),
+      Right(
+        List(
+          IntLiteral(1),
+          Opt('+'),
+          IntLiteral(2),
+          Opt('-'),
+          IntLiteral(3),
+          Opt('*'),
+          IntLiteral(4),
+          Opt('/'),
+          IntLiteral(5),
+          Opt('^'),
+          IntLiteral(6)
+        )
+      )
+    )
+    assertEquals(
+      lex("1.5 + 2.5 - 3.5 * 4.5 / 5.5 ^ 6.5"),
+      Right(
+        List(
+          DoubleLiteral(1.5),
+          Opt('+'),
+          DoubleLiteral(2.5),
+          Opt('-'),
+          DoubleLiteral(3.5),
+          Opt('*'),
+          DoubleLiteral(4.5),
+          Opt('/'),
+          DoubleLiteral(5.5),
+          Opt('^'),
+          DoubleLiteral(6.5)
+        )
+      )
+    )
   }
 
   test("Identifiers") {
@@ -28,7 +80,10 @@ class LexerSuite extends munit.FunSuite {
     assertEquals(lex("()"), Right(List(LeftParam, RightParam)))
     assertEquals(lex("(  )"), Right(List(LeftParam, RightParam)))
     assertEquals(lex("(1)"), Right(List(LeftParam, IntLiteral(1), RightParam)))
-    assertEquals(lex("((x))"), Right(List(LeftParam, LeftParam, Ident("x"), RightParam, RightParam)))
+    assertEquals(
+      lex("((x))"),
+      Right(List(LeftParam, LeftParam, Ident("x"), RightParam, RightParam))
+    )
   }
 
   test("Empty and boundary inputs") {
@@ -48,11 +103,23 @@ class LexerSuite extends munit.FunSuite {
 
   test("Combined expressions") {
     assertEquals(lex("x + y"), Right(List(Ident("x"), Opt('+'), Ident("y"))))
-    assertEquals(lex("(a + b) * 2"), Right(List(
-      LeftParam, Ident("a"), Opt('+'), Ident("b"), RightParam, Opt('*'), IntLiteral(2)
-    )))
-    assertEquals(lex("sin(1.5)"), Right(List(
-      Ident("sin"), LeftParam, DoubleLiteral(1.5), RightParam
-    )))
+    assertEquals(
+      lex("(a + b) * 2"),
+      Right(
+        List(
+          LeftParam,
+          Ident("a"),
+          Opt('+'),
+          Ident("b"),
+          RightParam,
+          Opt('*'),
+          IntLiteral(2)
+        )
+      )
+    )
+    assertEquals(
+      lex("sin(1.5)"),
+      Right(List(Ident("sin"), LeftParam, DoubleLiteral(1.5), RightParam))
+    )
   }
 }
