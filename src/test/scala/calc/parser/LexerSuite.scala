@@ -87,9 +87,9 @@ class LexerSuite extends munit.FunSuite {
   }
 
   test("Empty and boundary inputs") {
-    assertEquals(lex(""), Right(List.empty[Tokens]))
-    assertEquals(lex("   "), Right(List.empty[Tokens]))
-    assertEquals(lex("\t"), Right(List.empty[Tokens]))
+    assertEquals(lex(""), Right(List.empty[Token]))
+    assertEquals(lex("   "), Right(List.empty[Token]))
+    assertEquals(lex("\t"), Right(List.empty[Token]))
     assertEquals(lex("0"), Right(List(IntLiteral(0))))
     assertEquals(lex("."), Left(TokenizationInvalidNumericalValueError))
     assertEquals(lex("5."), Right(List(DoubleLiteral(5.0))))

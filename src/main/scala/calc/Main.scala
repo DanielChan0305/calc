@@ -2,22 +2,30 @@ package calc
 
 import calc.config.Constants
 import calc.error.CustomError
-import calc.parser.{lex, Tokens}
+import calc.parser.{lex, Token}
 import scala.annotation.tailrec
 import calc.parser.printListTokens
+import calc.parser.prattParsing
 
 @main
 def main(): Unit =
   // main event loop
+  println("here")
   var rawExpr: String = scala.io.StdIn.readLine("> ")
 
   while (rawExpr != "exit" && rawExpr != "quit")
-    eval(rawExpr)
+    val result = eval(rawExpr)
+
+    println(result)
+
     rawExpr = scala.io.StdIn.readLine("> ")
 
   // user quits the program
   println(s"Thanks for using ${Constants.AppName}. Have a nice day.")
 
 def eval(rawExpr: String): Either[CustomError, Double] =
-  for parsedTokens <- lex(rawExpr)
-  yield 0.0
+  for 
+    parsedTokens <- lex(rawExpr)
+    evaluation <- prattParsing(parsedTokens)
+  yield 
+    evaluation

@@ -6,7 +6,7 @@ import scala.annotation.tailrec
 /** Pretty printer for List[Tokens]
   * @param List[Tokens]
   */
-def printListTokens(tokens: List[Tokens]) =
+def printListTokens(tokens: List[Token]) =
   for (token <- tokens)
     println(token)
 
@@ -16,7 +16,7 @@ def printListTokens(tokens: List[Tokens]) =
   * @return
   *   Either[CustomError, List[Tokens]]
   */
-def lex(rawExpr: String): Either[CustomError, List[Tokens]] =
+def lex(rawExpr: String): Either[CustomError, List[Token]] =
   // helper functions and variables
   var pos = 0
 
@@ -31,7 +31,7 @@ def lex(rawExpr: String): Either[CustomError, List[Tokens]] =
 
   // looping through rawExpr
   @tailrec
-  def loop(acc: List[Tokens]): Either[CustomError, List[Tokens]] =
+  def loop(acc: List[Token]): Either[CustomError, List[Token]] =
     cur match
       // end of string
       case '$' => Right(acc.reverse)
@@ -68,28 +68,14 @@ def lex(rawExpr: String): Either[CustomError, List[Tokens]] =
         var value = ""
         while ('0' <= cur && cur <= '9') || cur == '.' do value += consume
 
-        // convert to Integer
-        value.toIntOption match
-          case None =>
-            // convert to Double
-            value.toDoubleOption match
-              case None                => Left(TokenizationInvalidNumericalValueError)
-              case Some(value: Double) =>
-                loop(DoubleLiteral(value) :: acc)
-
-          // Valid Integer
-          case Some(value: Int) =>
-            loop(IntLiteral(value) :: acc)
+        // convert to Double
+        value.toDoubleOption match
+          case None                => Left(TokenizationInvalidNumericalValueError)
+          case Some(value: Double) =>
+            loop(DoubleLiteral(value) :: acc)
 
       case _ =>
         Left(TokenizationInvalidCharacterError)
 
-  val res = loop(List())
+  loop(List())
 
-  // temporarily added for seeing the lexed tokens
-  res match
-    case Left(error) =>
-      println(error.message)
-    case Right(tokens) =>
-      printListTokens(tokens)
-  res
