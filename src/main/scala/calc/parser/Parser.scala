@@ -16,7 +16,7 @@ def getOptPrec(opt: Char): (Int, Int) =
     case '-' => (20, 21)
     case '*' => (30, 31)
     case '/' => (30, 31)
-    case '=' => (10, 11)
+    case '=' => (11, 10)
 
 def getInfixASTNode(symb: Char)(l: Expr, r: Expr): Either[CustomError, Expr] =
   symb match
