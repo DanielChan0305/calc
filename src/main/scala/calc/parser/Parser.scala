@@ -39,6 +39,10 @@ def getInfixASTNode(symb: Char)(l: Expr, r: Expr): Either[CustomError, Expr] =
   */
 def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
 
+  // check for empty expression
+  if (tokens.length == 0) Left(ParsingEmptyExpression)
+  else ()
+
   // helper functions and variables
   var pos = 0
 
@@ -113,7 +117,7 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
 
       // Empty
       case EndOfExpr =>
-        Left(ParsingEmptyExpression)
+        Left(ParsingInvalidMathExpression)
 
   // Handles the infix and the rhs
   def loop(lhs: Expr, prec: Int): Either[CustomError, Expr] =
