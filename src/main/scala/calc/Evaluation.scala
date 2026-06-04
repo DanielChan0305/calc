@@ -12,5 +12,6 @@ def eval(rawExpr: String): Either[CustomError, Double] =
   for
     parsedTokens <- lex(rawExpr)
     ASTExpr   <- prattParsing(parsedTokens)
+    _ = println(ASTExpr)
     value   <- evaluateASTExpr(ASTExpr)
   yield value

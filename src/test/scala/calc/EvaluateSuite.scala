@@ -1,9 +1,13 @@
 package calc
 
 import calc.error.*
+import calc.parser.IdentifierTable
 import munit.Location
 
 class EvaluationSuite extends munit.FunSuite {
+  override def beforeEach(context: BeforeEach): Unit =
+    IdentifierTable.UserDefinedVariables = Map()
+
   def customAssertEqual(evalResult: Either[CustomError, Double], expectedResult: Either[CustomError, Double])(implicit
       loc: Location
   ): Unit =
@@ -155,5 +159,67 @@ class EvaluationSuite extends munit.FunSuite {
 
   test("variable doesn't exists") {
     customAssertEqual(eval("ImJustAnUndefinedVariable"), Left(NameResolutionVariableDoesntExists("ImJustAnUndefinedVariable")))
+  }
+
+  // ── Assignment ──
+  test("basic assignment") {
+    customAssertEqual(eval("x = 5"), Right(5.0))
+    customAssertEqual(eval("x"), Right(5.0))
+  }
+
+  test("assignment with expression") {
+    customAssertEqual(eval("x = 2 + 3"), Right(5.0))
+    customAssertEqual(eval("x"), Right(5.0))
+  }
+
+  test("assignment with builtin constants") {
+    customAssertEqual(eval("x = pi"), Right(math.Pi))
+    customAssertEqual(eval("x"), Right(math.Pi))
+
+    customAssertEqual(eval("y = e"), Right(math.E))
+    customAssertEqual(eval("y"), Right(math.E))
+  }
+
+  test("overwrite existing variable") {
+    customAssertEqual(eval("x = 10"), Right(10.0))
+    customAssertEqual(eval("x = 20"), Right(20.0))
+    customAssertEqual(eval("x"), Right(20.0))
+  }
+
+  test("assignment with complex expression") {
+    customAssertEqual(eval("x = (1 + 2) * 3 - 4 / 2"), Right((1 + 2) * 3 - 4.0 / 2.0))
+    customAssertEqual(eval("x"), Right((1 + 2) * 3 - 4.0 / 2.0))
+  }
+
+  test("use variable in expression") {
+    customAssertEqual(eval("x = 5"), Right(5.0))
+    customAssertEqual(eval("x + 3"), Right(8.0))
+    customAssertEqual(eval("x * 2"), Right(10.0))
+    customAssertEqual(eval("x ^ 2"), Right(25.0))
+  }
+
+  test("implicit multiplication with variables") {
+    customAssertEqual(eval("x = 3"), Right(3.0))
+    customAssertEqual(eval("2x"), Right(6.0))
+    customAssertEqual(eval("x x"), Right(9.0))
+  }
+
+  test("assignment with unary minus") {
+    customAssertEqual(eval("x = -5"), Right(-5.0))
+    customAssertEqual(eval("x"), Right(-5.0))
+
+    customAssertEqual(eval("y = -(2 + 3)"), Right(-5.0))
+    customAssertEqual(eval("y"), Right(-5.0))
+  }
+
+  test("error: assignment to non-variable") {
+    customAssertEqual(eval("5 = 3"), Left(ParsingInvalidMathExpression))
+    customAssertEqual(eval("(x) = 5"), Left(ParsingInvalidMathExpression))
+    customAssertEqual(eval("(1 + 2) = 5"), Left(ParsingInvalidMathExpression))
+  }
+
+  test("error: assign to reserved function name") {
+    customAssertEqual(eval("sin = 5"), Left(NameResolutionVariableNameShadowsFunctionName("sin")))
+    customAssertEqual(eval("cos = 3"), Left(NameResolutionVariableNameShadowsFunctionName("cos")))
   }
 }

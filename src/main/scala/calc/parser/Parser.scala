@@ -97,14 +97,18 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
       case LeftParam =>
         consume
         openingParam += 1
-        var result = parseExpr(0)
 
-        cur match
-          case RightParam =>
-            consume
-            openingParam -= 1
-            result
-          case _ => Left(ParsingInvalidBracketSequence)
+        // evaluate expression
+        parseExpr(0) match
+          case Left(err) => Left(err)
+          case Right(innerExpr) =>
+            // check bracket matching
+            if (cur == RightParam)
+              consume
+              openingParam -= 1
+              Right(Param(innerExpr))
+            else
+              Left(ParsingInvalidBracketSequence)
 
       // Leading )
       case RightParam =>
