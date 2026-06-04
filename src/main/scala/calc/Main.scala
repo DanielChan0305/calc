@@ -10,13 +10,16 @@ import calc.parser.prattParsing
 @main
 def main(): Unit =
   // main event loop
-  println("here")
   var rawExpr: String = scala.io.StdIn.readLine("> ")
 
   while (rawExpr != "exit" && rawExpr != "quit")
     val result = eval(rawExpr)
 
-    println(result)
+    result match
+      case Left(error) =>
+        println(s"Error: ${error.message}")
+      case Right(value) => 
+        println(value)    
 
     rawExpr = scala.io.StdIn.readLine("> ")
 

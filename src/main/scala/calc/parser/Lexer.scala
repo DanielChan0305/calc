@@ -41,7 +41,7 @@ def lex(rawExpr: String): Either[CustomError, List[Token]] =
         loop(acc)
 
       // operators
-      case '+' | '-' | '*' | '/' | '^' =>
+      case '+' | '-' | '*' | '/' | '^' | '=' =>
         loop(Opt(consume) :: acc)
 
       // left param

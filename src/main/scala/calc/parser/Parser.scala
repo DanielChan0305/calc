@@ -16,24 +16,31 @@ def getOptPrec(opt: Char): (Int, Int) =
     case '-' => (20, 21)
     case '*' => (30, 31)
     case '/' => (30, 31)
+    case '=' => (10, 11)
 
-def applyOpt(symb: Char)(l: Double, r: Double): Double =
-  println(s"$l $r")
-  var fun: (Double, Double) => Double = symb match
-    case '+' => (_ + _)
-    case '-' => (_ - _)
-    case '*' => (_ * _)
-    case '/' => (_ / _)
-    case '^' => math.pow
+def getInfixASTNode(symb: Char)(l: Expr, r: Expr): Either[CustomError, Expr] =
+  symb match
+    case '=': Char => 
+      l match
+        case Var(name) =>
+          Right(Assign(name, r))
+        case _ => 
+          Left(ParsingInvalidMathExpression)
+      
+    case '+': Char => Right(BinOpt('+', l, r))
+    case '-': Char => Right(BinOpt('-', l, r))
+    case '*': Char => Right(BinOpt('*', l, r))
+    case '/': Char => Right(BinOpt('/', l, r))
+    case '^': Char => Right(BinOpt('^', l, r))
+    
+  
 
-  fun(l, r)
-
-/** Implement pratt parsing on the List[Tokens] to get the numerical value of an expression
+/** Implement pratt parsing on the List[Tokens] to get the AST of an expression
   *
   * @param tokens
   * @return
   */
-def prattParsing(tokens: List[Token]): Either[CustomError, Double] =
+def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
 
   // helper functions and variables
   var pos = 0
@@ -43,23 +50,72 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Double] =
   // access the current character
   def cur: Token = if (pos < tokens.length) tokens(pos) else EndOfExpr
 
-  println(s"Num tokens ${tokens.length}")
   // consumes the current character
   def consume: Token =
     val c = cur
     pos += 1
     c
 
-  def parseExpr(prec: Int): Either[CustomError, Double] =
+  // Handles the entire expression
+  def parseExpr(prec: Int): Either[CustomError, Expr] =
     for
       // lhs of the operand
       lhs <- parsePrefix()
-
       // apply infix operation with calculated lhs
       result <- loop(lhs, prec)
     yield result
 
-  def loop(lhs: Double, prec: Int): Either[CustomError, Double] =
+  // LHS of each expression
+  def parsePrefix(): Either[CustomError, Expr] =
+    cur match
+      // unary +
+      case Opt('+') =>
+        consume
+        parseExpr(50)
+
+      // unary -
+      case Opt('-') =>
+        consume
+        parseExpr(50).map(x => UnaryOpt('-', x))
+
+      case Opt('*') | Opt('/') | Opt('^') | Opt('=') =>
+        Left(ParsingInvalidMathExpression)
+
+      case Opt(_) =>
+        Left(ParsingInvalidSymbol)
+
+      case DoubleLiteral(value) =>
+        consume
+        Right(Num(value))
+
+      case Ident(name) =>
+        // calls API from NameTable
+        consume
+        Right(Var(name))
+
+      // Leading (
+      case LeftParam =>
+        consume
+        openingParam += 1
+        var result = parseExpr(0)
+
+        cur match
+          case RightParam =>
+            consume
+            openingParam -= 1
+            result
+          case _ => Left(ParsingInvalidBracketSequence)
+
+      // Leading )
+      case RightParam =>
+        Left(ParsingInvalidBracketSequence)
+
+      // Empty
+      case EndOfExpr =>
+        Left(ParsingEmptyExpression)
+
+  // Handles the infix and the rhs
+  def loop(lhs: Expr, prec: Int): Either[CustomError, Expr] =
     cur match
       // Exists an operator with sufficient binding power
       case Opt(symb) if getOptPrec(symb)._1 >= prec =>
@@ -80,7 +136,7 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Double] =
       case LeftParam =>
         for
           rhs    <- parseExpr(0)
-          result <- loop(lhs * rhs, prec)
+          result <- loop(BinOpt('*', lhs, rhs), prec)
         yield result
 
       // Leading )
@@ -103,62 +159,16 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Double] =
       case Ident(_) =>
         for 
           rhs <- parseExpr(0)
-          result <- loop(lhs * rhs, prec)
+          result <- loop(BinOpt('*', lhs, rhs), prec)
         yield 
           result
 
-  def parsePrefix(): Either[CustomError, Double] =
-    cur match
-      // unary +
-      case Opt('+') =>
-        consume
-        parseExpr(50)
 
-      // unary -
-      case Opt('-') =>
-        consume
-        parseExpr(50).map(x => -x)
-
-      case Opt('*') | Opt('/') | Opt('^') =>
-        Left(ParsingInvalidMathExpression)
-
-      case Opt(_) =>
-        Left(ParsingInvalidSymbol)
-
-      case DoubleLiteral(value) =>
-        consume
-        Right(value)
-
-      case Ident(name) =>
-        // calls API from NameTable
-        consume
-        getValueByName(name) match
-          case Left(error) => Left(error)
-          case Right(value) => Right(value)
-        
-      // Leading (
-      case LeftParam =>
-        consume
-        openingParam += 1
-        var result = parseExpr(0)
-
-        cur match
-          case RightParam =>
-            consume
-            openingParam -= 1
-            result
-          case _ => Left(ParsingInvalidBracketSequence)
-
-      // Leading )
-      case RightParam =>
-        Left(ParsingInvalidBracketSequence)
-
-      // Empty
-      case EndOfExpr =>
-        Left(ParsingEmptyExpression)
-
-  def parseInfix(symb: Char, lhs: Double): Either[CustomError, Double] =
-    for rhs <- parseExpr(getOptPrec(symb)._2)
-    yield applyOpt(symb)(lhs, rhs)
+  def parseInfix(symb: Char, lhs: Expr): Either[CustomError, Expr] =
+    for 
+      rhs <- parseExpr(getOptPrec(symb)._2)
+      ASTnode <- getInfixASTNode(symb)(lhs, rhs)
+    yield
+      ASTnode
 
   parseExpr(0)
