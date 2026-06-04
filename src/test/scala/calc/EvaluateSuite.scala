@@ -73,6 +73,12 @@ class EvaluationSuite extends munit.FunSuite {
     customAssertEqual(eval("((2 + 3) * (4 + 1))"), Right(25.0))
   }
 
+  // ── Builtin constants cases ──
+  test("builtin constants") {
+    customAssertEqual(eval("e"), Right(math.E))
+    customAssertEqual(eval("pi"), Right(math.Pi))
+  }
+
   // ── Unary operators ──
   test("unary minus") {
     customAssertEqual(eval("-5"), Right(-5.0))
@@ -80,18 +86,25 @@ class EvaluationSuite extends munit.FunSuite {
     customAssertEqual(eval("3 + -5"), Right(-2.0))
     customAssertEqual(eval("-(2 + 3)"), Right(-5.0))
     customAssertEqual(eval("--5"), Right(5.0))
+    customAssertEqual(eval("-e"), Right(-1 * Math.E))
+    customAssertEqual(eval("--pi"), Right(-1 * -1 * Math.PI))
   }
 
   test("unary plus") {
     customAssertEqual(eval("+5"), Right(5.0))
     customAssertEqual(eval("+5 - 3"), Right(2.0))
+
+    customAssertEqual(eval("+pi - e"), Right(Math.PI - Math.E))
   }
 
   // ── Implicit multiplication ──
-  test("implicit multiplication via parentheses") {
+  test("implicit multiplication") {
     customAssertEqual(eval("2(3)"), Right(6.0))
     customAssertEqual(eval("(2)(3)"), Right(6.0))
     customAssertEqual(eval("(2 + 1)(3)"), Right(9.0))
+
+    customAssertEqual(eval("2e"), Right(2 * Math.E))
+    customAssertEqual(eval("2 pi e"), Right(2 * Math.PI * Math.E))
   }
 
   // ── Mixed expressions ──
@@ -134,5 +147,13 @@ class EvaluationSuite extends munit.FunSuite {
 
   test("invalid numerical value") {
     customAssertEqual(eval("1.2.3"), Left(TokenizationInvalidNumericalValueError))
+  }
+
+  //test("invalid variable name") {
+  //  customAssertEqual(eval("sin"), Left(NameResolutionVariableNameShadowsFunctionName("sin")))
+  //}
+
+  test("variable doesn't exists") {
+    customAssertEqual(eval("ImJustAnUndefinedVariable"), Left(NameResolutionVariableDoesntExists("ImJustAnUndefinedVariable")))
   }
 }

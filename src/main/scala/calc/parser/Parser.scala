@@ -2,6 +2,7 @@ package calc.parser
 
 import calc.error.*
 import scala.compiletime.ops.double
+import calc.parser.IdentifierTable.getValueByName
 
 /** Helper function for implementing pratt parsing
   *
@@ -75,7 +76,7 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Double] =
 
       //                       v
       // Handling cases like 2 (3)
-      // acts as multiplication
+      // implicit multiplication
       case LeftParam =>
         for
           rhs    <- parseExpr(0)
@@ -96,11 +97,15 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Double] =
       case DoubleLiteral(_) =>
         Left(ParsingMissingOperator)
 
+      //
+      // Handling cases like 2e
+      // implicit multplication
       case Ident(_) =>
-        ???
-
-      case _ =>
-        Right(lhs)
+        for 
+          rhs <- parseExpr(0)
+          result <- loop(lhs * rhs, prec)
+        yield 
+          result
 
   def parsePrefix(): Either[CustomError, Double] =
     cur match
@@ -125,8 +130,12 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Double] =
         Right(value)
 
       case Ident(name) =>
-        ???
-
+        // calls API from NameTable
+        consume
+        getValueByName(name) match
+          case Left(error) => Left(error)
+          case Right(value) => Right(value)
+        
       // Leading (
       case LeftParam =>
         consume
