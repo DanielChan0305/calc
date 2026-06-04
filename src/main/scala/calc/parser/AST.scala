@@ -7,12 +7,12 @@ import calc.parser.IdentifierTable.assignValueToVariable
 
 sealed trait Expr
 
-case class Num(value: Double) extends Expr
-case class Var(name: String) extends Expr
-case class Paren(expr: Expr) extends Expr
+case class Num(value: Double)                      extends Expr
+case class Var(name: String)                       extends Expr
+case class Paren(expr: Expr)                       extends Expr
 case class BinOpt(opt: Char, lhs: Expr, rhs: Expr) extends Expr
-case class UnaryOpt(opt: Char, expr: Expr) extends Expr
-case class Assign(name: String, expr: Expr) extends Expr
+case class UnaryOpt(opt: Char, expr: Expr)         extends Expr
+case class Assign(name: String, expr: Expr)        extends Expr
 
 def applyBinOpt(symb: Char)(l: Double, r: Double): Double =
   var fun: (Double, Double) => Double = symb match
@@ -24,37 +24,32 @@ def applyBinOpt(symb: Char)(l: Double, r: Double): Double =
 
   fun(l, r)
 
-def evaluateASTExpr(ASTExpr: Expr): Either[CustomError, Double] = 
+def evaluateASTExpr(ASTExpr: Expr): Either[CustomError, Double] =
   ASTExpr match
-    case Num(value) => Right(value)
-    case Var(name) => getValueByName(name)
+    case Num(value)            => Right(value)
+    case Var(name)             => getValueByName(name)
     case BinOpt(opt, lhs, rhs) =>
-      for  
+      for
         lhs_val <- evaluateASTExpr(lhs)
         rhs_val <- evaluateASTExpr(rhs)
-      
+
         result <- Right(applyBinOpt(opt)(lhs_val, rhs_val))
-      yield
-        result
+      yield result
 
     case UnaryOpt(opt, expr) =>
-      for 
+      for
         expr_val <- evaluateASTExpr(expr)
-
-        result <- opt match
+        result   <- opt match
           case '-' => Right(-1.0 * expr_val)
           case '+' => Right(expr_val)
-          case _ => Left(ParsingInvalidMathExpression)
-      
-      yield 
-        result
-      
+          case _   => Left(ParsingInvalidMathExpression)
+      yield result
+
     case Assign(name, expr) =>
       for
-        expr_val <- evaluateASTExpr(expr) 
-        result <- assignValueToVariable(name, expr_val)
-      yield
-        result
-  
-    case Paren(expr) => 
+        expr_val <- evaluateASTExpr(expr)
+        result   <- assignValueToVariable(name, expr_val)
+      yield result
+
+    case Paren(expr) =>
       evaluateASTExpr(expr)

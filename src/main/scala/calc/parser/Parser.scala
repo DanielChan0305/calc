@@ -30,8 +30,7 @@ def getInfixASTNode(symb: Char)(l: Expr, r: Expr): Either[CustomError, Expr] =
     case '*' => Right(BinOpt('*', l, r))
     case '/' => Right(BinOpt('/', l, r))
     case '^' => Right(BinOpt('^', l, r))
-    
-  
+
 /** Implement pratt parsing on the List[Tokens] to get the AST of an expression
   *
   * @param tokens
@@ -40,11 +39,10 @@ def getInfixASTNode(symb: Char)(l: Expr, r: Expr): Either[CustomError, Expr] =
 def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
 
   // check for empty expression
-  //println(tokens.length)
+  // println(tokens.length)
   if (tokens.length == 0) {
     Left(ParsingEmptyExpression)
-  }
-  else {
+  } else {
     // helper functions and variables
     var pos = 0
 
@@ -103,15 +101,14 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
 
           // evaluate expression
           parseExpr(0) match
-            case Left(err) => Left(err)
+            case Left(err)        => Left(err)
             case Right(innerExpr) =>
               // check bracket matching
               if (cur == RightParen)
                 consume
                 openingParen -= 1
                 Right(Paren(innerExpr))
-              else
-                Left(ParsingInvalidBracketSequence)
+              else Left(ParsingInvalidBracketSequence)
 
         // Leading )
         case RightParen =>
@@ -164,19 +161,16 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
         // Handling cases like 2e
         // implicit multplication
         case Ident(_) =>
-          for 
-            rhs <- parseExpr(0)
+          for
+            rhs    <- parseExpr(0)
             result <- loop(BinOpt('*', lhs, rhs), prec)
-          yield 
-            result
-
+          yield result
 
     def parseInfix(symb: Char, lhs: Expr): Either[CustomError, Expr] =
-      for 
-        rhs <- parseExpr(getOptPrec(symb)._2)
+      for
+        rhs     <- parseExpr(getOptPrec(symb)._2)
         ASTnode <- getInfixASTNode(symb)(lhs, rhs)
-      yield
-        ASTnode
+      yield ASTnode
 
     parseExpr(0)
   }

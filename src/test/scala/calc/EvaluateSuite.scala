@@ -139,7 +139,7 @@ class EvaluationSuite extends munit.FunSuite {
     customAssertEqual(eval("1 + 2)"), Left(ParsingInvalidBracketSequence))
   }
 
-  test("invalid mathematical expression"){
+  test("invalid mathematical expression") {
     customAssertEqual(eval("(1 +"), Left(ParsingInvalidMathExpression))
   }
 
@@ -162,7 +162,10 @@ class EvaluationSuite extends munit.FunSuite {
   }
 
   test("variable doesn't exists") {
-    customAssertEqual(eval("ImJustAnUndefinedVariable"), Left(NameResolutionVariableDoesntExists("ImJustAnUndefinedVariable")))
+    customAssertEqual(
+      eval("ImJustAnUndefinedVariable"),
+      Left(NameResolutionVariableDoesntExists("ImJustAnUndefinedVariable"))
+    )
   }
 
   // ── Assignment ──

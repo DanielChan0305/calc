@@ -18,8 +18,8 @@ def main(): Unit =
     result match
       case Left(error) =>
         println(s"Error: ${error.message}")
-      case Right(value) => 
-        println(value)    
+      case Right(value) =>
+        println(value)
 
     rawExpr = scala.io.StdIn.readLine("> ")
 

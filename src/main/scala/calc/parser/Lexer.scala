@@ -17,64 +17,42 @@ def printListTokens(tokens: List[Token]) =
   *   Either[CustomError, List[Tokens]]
   */
 def lex(rawExpr: String): Either[CustomError, List[Token]] =
-  // helper functions and variables
-  var pos = 0
-
-  // access the current character
-  def cur: Char = if (pos < rawExpr.length()) rawExpr(pos) else '\u0000'
-
-  // consumes the current character
-  def consume: Char =
-    val c = cur
-    pos += 1
-    c
-
   // looping through rawExpr
   @tailrec
-  def loop(acc: List[Token]): Either[CustomError, List[Token]] =
-    cur match
+  def loop(chars: List[Char], acc: List[Token]): Either[CustomError, List[Token]] =
+    chars match
       // end of string
-      case '\u0000' => Right(acc.reverse)
+      case Nil => Right(acc.reverse)
 
-      case ' ' | '\t' =>
-        consume
-        loop(acc)
+      // whitespace
+      case (' ' | '\t') :: tail =>
+        loop(tail, acc)
 
       // operators
-      case '+' | '-' | '*' | '/' | '^' | '=' =>
-        loop(Opt(consume) :: acc)
+      case (op @ ('+' | '-' | '*' | '/' | '^' | '=')) :: tail =>
+        loop(tail, Opt(op) :: acc)
 
       // left param
-      case '(' =>
-        consume
-        loop(LeftParen :: acc)
+      case '(' :: tail =>
+        loop(tail, LeftParen :: acc)
 
       // right param
-      case ')' =>
-        consume
-        loop(RightParen :: acc)
+      case ')' :: tail =>
+        loop(tail, RightParen :: acc)
 
       // variables or functions
-      case _ if cur.isLetter =>
-        // get the word
-        var name = ""
-        while cur.isLetter || cur.isDigit do name += consume
-
-        loop(Ident(name) :: acc)
+      case head :: tail if head.isLetter =>
+        val (nameChars, rest) = tail.span(c => c.isLetter || c.isDigit)
+        loop(rest, Ident((head :: nameChars).mkString) :: acc)
 
       // numeric values
-      case _ if cur.isDigit || cur == '.' =>
-        // gets the word
-        var value = ""
-        while cur.isDigit || cur == '.' do value += consume
+      case head :: tail if head.isDigit || head == '.' =>
+        val (valueChars, rest) = tail.span(c => c.isDigit || c == '.')
+        (head :: valueChars).mkString.toDoubleOption match
+          case None        => Left(TokenizationInvalidNumericalValueError)
+          case Some(value) => loop(rest, DoubleLiteral(value) :: acc)
 
-        // convert to Double
-        value.toDoubleOption match
-          case None                => Left(TokenizationInvalidNumericalValueError)
-          case Some(value: Double) =>
-            loop(DoubleLiteral(value) :: acc)
-
-      case _ =>
+      case _ :: _ =>
         Left(TokenizationInvalidCharacterError)
 
-  loop(List())
+  loop(rawExpr.toList, List())
