@@ -34,7 +34,6 @@ def getInfixASTNode(symb: Char)(l: Expr, r: Expr): Either[CustomError, Expr] =
     case '^': Char => Right(BinOpt('^', l, r))
     
   
-
 /** Implement pratt parsing on the List[Tokens] to get the AST of an expression
   *
   * @param tokens
@@ -45,7 +44,7 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
   // helper functions and variables
   var pos = 0
 
-  var openingParam = 0
+  var openingParen = 0
 
   // access the current character
   def cur: Token = if (pos < tokens.length) tokens(pos) else EndOfExpr
@@ -94,24 +93,24 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
         Right(Var(name))
 
       // Leading (
-      case LeftParam =>
+      case LeftParen =>
         consume
-        openingParam += 1
+        openingParen += 1
 
         // evaluate expression
         parseExpr(0) match
           case Left(err) => Left(err)
           case Right(innerExpr) =>
             // check bracket matching
-            if (cur == RightParam)
+            if (cur == RightParen)
               consume
-              openingParam -= 1
-              Right(Param(innerExpr))
+              openingParen -= 1
+              Right(Paren(innerExpr))
             else
               Left(ParsingInvalidBracketSequence)
 
       // Leading )
-      case RightParam =>
+      case RightParen =>
         Left(ParsingInvalidBracketSequence)
 
       // Empty
@@ -137,15 +136,15 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
       //                       v
       // Handling cases like 2 (3)
       // implicit multiplication
-      case LeftParam =>
+      case LeftParen =>
         for
           rhs    <- parseExpr(0)
           result <- loop(BinOpt('*', lhs, rhs), prec)
         yield result
 
       // Leading )
-      case RightParam =>
-        if (openingParam <= 0)
+      case RightParen =>
+        if (openingParen <= 0)
           Left(ParsingInvalidBracketSequence)
         else
           Right(lhs)

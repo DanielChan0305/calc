@@ -10,7 +10,7 @@ case class Ident(name: String) extends Token
 case class DoubleLiteral(value: Double) extends Token
 
 case class Opt(symb: Char) extends Token
-case object LeftParam      extends Token
-case object RightParam     extends Token
+case object LeftParen      extends Token
+case object RightParen     extends Token
 
 case object EndOfExpr extends Token

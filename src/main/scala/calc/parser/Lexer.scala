@@ -47,12 +47,12 @@ def lex(rawExpr: String): Either[CustomError, List[Token]] =
       // left param
       case '(' =>
         consume
-        loop(LeftParam :: acc)
+        loop(LeftParen :: acc)
 
       // right param
       case ')' =>
         consume
-        loop(RightParam :: acc)
+        loop(RightParen :: acc)
 
       // variables or functions
       case _ if cur.isLetter =>

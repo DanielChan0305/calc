@@ -77,12 +77,12 @@ class LexerSuite extends munit.FunSuite {
   }
 
   test("Parentheses") {
-    assertEquals(lex("()"), Right(List(LeftParam, RightParam)))
-    assertEquals(lex("(  )"), Right(List(LeftParam, RightParam)))
-    assertEquals(lex("(1)"), Right(List(LeftParam, DoubleLiteral(1), RightParam)))
+    assertEquals(lex("()"), Right(List(LeftParen, RightParen)))
+    assertEquals(lex("(  )"), Right(List(LeftParen, RightParen)))
+    assertEquals(lex("(1)"), Right(List(LeftParen, DoubleLiteral(1), RightParen)))
     assertEquals(
       lex("((x))"),
-      Right(List(LeftParam, LeftParam, Ident("x"), RightParam, RightParam))
+      Right(List(LeftParen, LeftParen, Ident("x"), RightParen, RightParen))
     )
   }
 
@@ -107,11 +107,11 @@ class LexerSuite extends munit.FunSuite {
       lex("(a + b) * 2"),
       Right(
         List(
-          LeftParam,
+          LeftParen,
           Ident("a"),
           Opt('+'),
           Ident("b"),
-          RightParam,
+          RightParen,
           Opt('*'),
           DoubleLiteral(2)
         )
@@ -119,7 +119,7 @@ class LexerSuite extends munit.FunSuite {
     )
     assertEquals(
       lex("sin(1.5)"),
-      Right(List(Ident("sin"), LeftParam, DoubleLiteral(1.5), RightParam))
+      Right(List(Ident("sin"), LeftParen, DoubleLiteral(1.5), RightParen))
     )
   }
 }

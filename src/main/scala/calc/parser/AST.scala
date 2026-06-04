@@ -9,7 +9,7 @@ sealed trait Expr
 
 case class Num(value: Double) extends Expr
 case class Var(name: String) extends Expr
-case class Param(expr: Expr) extends Expr
+case class Paren(expr: Expr) extends Expr
 case class BinOpt(opt: Char, lhs: Expr, rhs: Expr) extends Expr
 case class UnaryOpt(opt: Char, expr: Expr) extends Expr
 case class Assign(name: String, expr: Expr) extends Expr
@@ -56,5 +56,5 @@ def evaluateASTExpr(ASTExpr: Expr): Either[CustomError, Double] =
       yield
         result
   
-    case Param(expr) => 
+    case Paren(expr) => 
       evaluateASTExpr(expr)
