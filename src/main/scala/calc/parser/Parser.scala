@@ -40,140 +40,143 @@ def getInfixASTNode(symb: Char)(l: Expr, r: Expr): Either[CustomError, Expr] =
 def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
 
   // check for empty expression
-  if (tokens.length == 0) Left(ParsingEmptyExpression)
-  else ()
+  //println(tokens.length)
+  if (tokens.length == 0) {
+    Left(ParsingEmptyExpression)
+  }
+  else {
+    // helper functions and variables
+    var pos = 0
 
-  // helper functions and variables
-  var pos = 0
+    var openingParen = 0
 
-  var openingParen = 0
+    // access the current character
+    def cur: Token = if (pos < tokens.length) tokens(pos) else EndOfExpr
 
-  // access the current character
-  def cur: Token = if (pos < tokens.length) tokens(pos) else EndOfExpr
+    // consumes the current character
+    def consume: Token =
+      val c = cur
+      pos += 1
+      c
 
-  // consumes the current character
-  def consume: Token =
-    val c = cur
-    pos += 1
-    c
+    // Handles the entire expression
+    def parseExpr(prec: Int): Either[CustomError, Expr] =
+      for
+        // lhs of the operand
+        lhs <- parsePrefix()
+        // apply infix operation with calculated lhs
+        result <- loop(lhs, prec)
+      yield result
 
-  // Handles the entire expression
-  def parseExpr(prec: Int): Either[CustomError, Expr] =
-    for
-      // lhs of the operand
-      lhs <- parsePrefix()
-      // apply infix operation with calculated lhs
-      result <- loop(lhs, prec)
-    yield result
+    // LHS of each expression
+    def parsePrefix(): Either[CustomError, Expr] =
+      cur match
+        // unary +
+        case Opt('+') =>
+          consume
+          parseExpr(50)
 
-  // LHS of each expression
-  def parsePrefix(): Either[CustomError, Expr] =
-    cur match
-      // unary +
-      case Opt('+') =>
-        consume
-        parseExpr(50)
+        // unary -
+        case Opt('-') =>
+          consume
+          parseExpr(50).map(x => UnaryOpt('-', x))
 
-      // unary -
-      case Opt('-') =>
-        consume
-        parseExpr(50).map(x => UnaryOpt('-', x))
+        case Opt('*') | Opt('/') | Opt('^') | Opt('=') =>
+          Left(ParsingInvalidMathExpression)
 
-      case Opt('*') | Opt('/') | Opt('^') | Opt('=') =>
-        Left(ParsingInvalidMathExpression)
+        case Opt(_) =>
+          Left(ParsingInvalidSymbol)
 
-      case Opt(_) =>
-        Left(ParsingInvalidSymbol)
+        case DoubleLiteral(value) =>
+          consume
+          Right(Num(value))
 
-      case DoubleLiteral(value) =>
-        consume
-        Right(Num(value))
+        case Ident(name) =>
+          // calls API from NameTable
+          consume
+          Right(Var(name))
 
-      case Ident(name) =>
-        // calls API from NameTable
-        consume
-        Right(Var(name))
+        // Leading (
+        case LeftParen =>
+          consume
+          openingParen += 1
 
-      // Leading (
-      case LeftParen =>
-        consume
-        openingParen += 1
+          // evaluate expression
+          parseExpr(0) match
+            case Left(err) => Left(err)
+            case Right(innerExpr) =>
+              // check bracket matching
+              if (cur == RightParen)
+                consume
+                openingParen -= 1
+                Right(Paren(innerExpr))
+              else
+                Left(ParsingInvalidBracketSequence)
 
-        // evaluate expression
-        parseExpr(0) match
-          case Left(err) => Left(err)
-          case Right(innerExpr) =>
-            // check bracket matching
-            if (cur == RightParen)
-              consume
-              openingParen -= 1
-              Right(Paren(innerExpr))
-            else
-              Left(ParsingInvalidBracketSequence)
-
-      // Leading )
-      case RightParen =>
-        Left(ParsingInvalidBracketSequence)
-
-      // Empty
-      case EndOfExpr =>
-        Left(ParsingInvalidMathExpression)
-
-  // Handles the infix and the rhs
-  def loop(lhs: Expr, prec: Int): Either[CustomError, Expr] =
-    cur match
-      // Exists an operator with sufficient binding power
-      case Opt(symb) if getOptPrec(symb)._1 >= prec =>
-        // apply this operation
-        consume
-        for
-          acc_lhs <- parseInfix(symb, lhs)
-          result  <- loop(acc_lhs, prec)
-        yield result
-
-      // Exists an operator but not enough binding power
-      case Opt(symb) =>
-        Right(lhs)
-
-      //                       v
-      // Handling cases like 2 (3)
-      // implicit multiplication
-      case LeftParen =>
-        for
-          rhs    <- parseExpr(0)
-          result <- loop(BinOpt('*', lhs, rhs), prec)
-        yield result
-
-      // Leading )
-      case RightParen =>
-        if (openingParen <= 0)
+        // Leading )
+        case RightParen =>
           Left(ParsingInvalidBracketSequence)
-        else
+
+        // Empty
+        case EndOfExpr =>
+          Left(ParsingInvalidMathExpression)
+
+    // Handles the infix and the rhs
+    def loop(lhs: Expr, prec: Int): Either[CustomError, Expr] =
+      cur match
+        // Exists an operator with sufficient binding power
+        case Opt(symb) if getOptPrec(symb)._1 >= prec =>
+          // apply this operation
+          consume
+          for
+            acc_lhs <- parseInfix(symb, lhs)
+            result  <- loop(acc_lhs, prec)
+          yield result
+
+        // Exists an operator but not enough binding power
+        case Opt(symb) =>
           Right(lhs)
 
-      // we have reached the end of the expression
-      case EndOfExpr =>
-        Right(lhs)
+        //                       v
+        // Handling cases like 2 (3)
+        // implicit multiplication
+        case LeftParen =>
+          for
+            rhs    <- parseExpr(0)
+            result <- loop(BinOpt('*', lhs, rhs), prec)
+          yield result
 
-      case DoubleLiteral(_) =>
-        Left(ParsingMissingOperator)
+        // Leading )
+        case RightParen =>
+          if (openingParen <= 0)
+            Left(ParsingInvalidBracketSequence)
+          else
+            Right(lhs)
 
-      //
-      // Handling cases like 2e
-      // implicit multplication
-      case Ident(_) =>
-        for 
-          rhs <- parseExpr(0)
-          result <- loop(BinOpt('*', lhs, rhs), prec)
-        yield 
-          result
+        // we have reached the end of the expression
+        case EndOfExpr =>
+          Right(lhs)
+
+        case DoubleLiteral(_) =>
+          Left(ParsingMissingOperator)
+
+        //
+        // Handling cases like 2e
+        // implicit multplication
+        case Ident(_) =>
+          for 
+            rhs <- parseExpr(0)
+            result <- loop(BinOpt('*', lhs, rhs), prec)
+          yield 
+            result
 
 
-  def parseInfix(symb: Char, lhs: Expr): Either[CustomError, Expr] =
-    for 
-      rhs <- parseExpr(getOptPrec(symb)._2)
-      ASTnode <- getInfixASTNode(symb)(lhs, rhs)
-    yield
-      ASTnode
+    def parseInfix(symb: Char, lhs: Expr): Either[CustomError, Expr] =
+      for 
+        rhs <- parseExpr(getOptPrec(symb)._2)
+        ASTnode <- getInfixASTNode(symb)(lhs, rhs)
+      yield
+        ASTnode
 
-  parseExpr(0)
+    parseExpr(0)
+  }

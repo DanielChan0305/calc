@@ -21,7 +21,7 @@ def lex(rawExpr: String): Either[CustomError, List[Token]] =
   var pos = 0
 
   // access the current character
-  def cur: Char = if (pos < rawExpr.length()) rawExpr(pos) else '$'
+  def cur: Char = if (pos < rawExpr.length()) rawExpr(pos) else '\u0000'
 
   // consumes the current character
   def consume: Char =
@@ -34,7 +34,7 @@ def lex(rawExpr: String): Either[CustomError, List[Token]] =
   def loop(acc: List[Token]): Either[CustomError, List[Token]] =
     cur match
       // end of string
-      case '$' => Right(acc.reverse)
+      case '\u0000' => Right(acc.reverse)
 
       case ' ' | '\t' =>
         consume
@@ -66,7 +66,7 @@ def lex(rawExpr: String): Either[CustomError, List[Token]] =
       case _ if cur.isDigit || cur == '.' =>
         // gets the word
         var value = ""
-        while ('0' <= cur && cur <= '9') || cur == '.' do value += consume
+        while cur.isDigit || cur == '.' do value += consume
 
         // convert to Double
         value.toDoubleOption match

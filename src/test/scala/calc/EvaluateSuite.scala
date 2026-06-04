@@ -139,6 +139,10 @@ class EvaluationSuite extends munit.FunSuite {
     customAssertEqual(eval("1 + 2)"), Left(ParsingInvalidBracketSequence))
   }
 
+  test("invalid mathematical expression"){
+    customAssertEqual(eval("(1 +"), Left(ParsingInvalidMathExpression))
+  }
+
   test("missing operator") {
     customAssertEqual(eval("1 2"), Left(ParsingMissingOperator))
   }
