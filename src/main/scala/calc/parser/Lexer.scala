@@ -78,4 +78,3 @@ def lex(rawExpr: String): Either[CustomError, List[Token]] =
         Left(TokenizationInvalidCharacterError)
 
   loop(List())
-

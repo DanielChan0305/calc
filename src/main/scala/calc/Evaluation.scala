@@ -1,17 +1,15 @@
 package calc
 
-import calc.error.* 
+import calc.error.*
 import parser.*
 
-/**
-  * Evaluates the numerical value of a given expression
+/** Evaluates the numerical value of a given expression
   *
   * @param rawExpr
   * @return
   */
 def eval(rawExpr: String): Either[CustomError, Double] =
-  for 
+  for
     parsedTokens <- lex(rawExpr)
-    evaluation <- prattParsing(parsedTokens)
-  yield 
-    evaluation
+    evaluation   <- prattParsing(parsedTokens)
+  yield evaluation

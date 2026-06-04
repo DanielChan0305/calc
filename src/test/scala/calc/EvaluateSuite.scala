@@ -4,7 +4,9 @@ import calc.error.*
 import munit.Location
 
 class EvaluationSuite extends munit.FunSuite {
-  def customAssertEqual(evalResult: Either[CustomError, Double], expectedResult: Either[CustomError, Double])(implicit loc: Location): Unit =
+  def customAssertEqual(evalResult: Either[CustomError, Double], expectedResult: Either[CustomError, Double])(implicit
+      loc: Location
+  ): Unit =
     (evalResult, expectedResult) match
       case (Left(error1), Left(error2)) =>
         assertEquals(error1, error2)
@@ -14,7 +16,6 @@ class EvaluationSuite extends munit.FunSuite {
         fail(s"Expected $expectedResult but got error: ${err.message}")
       case (_, Left(err)) =>
         fail(s"Got $evalResult but expected error: ${err.message}")
-
 
   // ── Basic arithmetic ──
   test("addition") {
@@ -40,7 +41,7 @@ class EvaluationSuite extends munit.FunSuite {
 
   test("exponentiation") {
     customAssertEqual(eval("2 ^ 3"), Right(8.0))
-    customAssertEqual(eval("2 ^ 3 ^ 2"), Right(math.pow(2, math.pow(3, 2))))  // right-associative
+    customAssertEqual(eval("2 ^ 3 ^ 2"), Right(math.pow(2, math.pow(3, 2)))) // right-associative
   }
 
   // ── Operator precedence ──

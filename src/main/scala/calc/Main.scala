@@ -22,4 +22,3 @@ def main(): Unit =
 
   // user quits the program
   println(s"Thanks for using ${Constants.AppName}. Have a nice day.")
-
