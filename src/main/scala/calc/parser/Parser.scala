@@ -20,18 +20,16 @@ def getOptPrec(opt: Char): (Int, Int) =
 
 def getInfixASTNode(symb: Char)(l: Expr, r: Expr): Either[CustomError, Expr] =
   symb match
-    case '=': Char => 
+    case '=' =>
       l match
-        case Var(name) =>
-          Right(Assign(name, r))
-        case _ => 
-          Left(ParsingInvalidMathExpression)
-      
-    case '+': Char => Right(BinOpt('+', l, r))
-    case '-': Char => Right(BinOpt('-', l, r))
-    case '*': Char => Right(BinOpt('*', l, r))
-    case '/': Char => Right(BinOpt('/', l, r))
-    case '^': Char => Right(BinOpt('^', l, r))
+        case Var(name) => Right(Assign(name, r))
+        case _         => Left(ParsingInvalidMathExpression)
+
+    case '+' => Right(BinOpt('+', l, r))
+    case '-' => Right(BinOpt('-', l, r))
+    case '*' => Right(BinOpt('*', l, r))
+    case '/' => Right(BinOpt('/', l, r))
+    case '^' => Right(BinOpt('^', l, r))
     
   
 /** Implement pratt parsing on the List[Tokens] to get the AST of an expression
