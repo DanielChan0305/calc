@@ -20,18 +20,24 @@ object IdentifierTable:
     *
     * @return
     */
+  def isNameReservedForFuncs(name: String): Boolean = BuiltinFunctions.isDefinedAt(name)
+
   def assignValueToVariable(name: String, value: Double): Either[CustomError, Double] =
-    val isNameReservedForFuncs: Boolean = BuiltinFunctions.isDefinedAt(name)
-    if (isNameReservedForFuncs) Left(NameResolutionVariableNameShadowsFunctionName(name))
+    if (isNameReservedForFuncs(name)) Left(NameResolutionVariableNameShadowsFunctionName(name))
     else
       UserDefinedVariables = UserDefinedVariables + (name -> value)
       Right(value)
 
   def getValueByName(name: String): Either[CustomError, Double] =
     name match
+      case _ if isNameReservedForFuncs(name) =>
+        Left(NameResolutionVariableNameShadowsFunctionName(name))
+
       case _ if UserDefinedVariables.isDefinedAt(name) =>
         Right(UserDefinedVariables(name))
+
       case _ if BuiltinConstants.isDefinedAt(name) =>
         Right(BuiltinConstants(name))
+
       case _ =>
         Left(NameResolutionVariableDoesntExists(name))

@@ -149,9 +149,9 @@ class EvaluationSuite extends munit.FunSuite {
     customAssertEqual(eval("1.2.3"), Left(TokenizationInvalidNumericalValueError))
   }
 
-  //test("invalid variable name") {
-  //  customAssertEqual(eval("sin"), Left(NameResolutionVariableNameShadowsFunctionName("sin")))
-  //}
+  test("invalid variable name") {
+    customAssertEqual(eval("sin"), Left(NameResolutionVariableNameShadowsFunctionName("sin")))
+  }
 
   test("variable doesn't exists") {
     customAssertEqual(eval("ImJustAnUndefinedVariable"), Left(NameResolutionVariableDoesntExists("ImJustAnUndefinedVariable")))
