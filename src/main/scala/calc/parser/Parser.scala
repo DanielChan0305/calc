@@ -28,6 +28,13 @@ def applyOpt(symb: Char)(l: Double, r: Double) : Double =
 
   fun(l, r)
   
+
+/**
+  * Implement pratt parsing on the List[Tokens] to get the numerical value of an expression
+  *
+  * @param tokens
+  * @return
+  */
 def prattParsing(tokens: List[Token]): Either[CustomError, Double] = 
   
   // helper functions and variables
@@ -60,6 +67,7 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Double] =
       // Exists an operator with sufficient binding power
       case Opt(symb) if getOptPrec(symb)._1 >= prec =>
         // apply this operation
+        consume
         for 
           acc_lhs <- parseInfix(symb, lhs)
           result <- loop(acc_lhs, prec)
@@ -80,6 +88,13 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Double] =
 
         yield 
           result
+
+      // Leading )
+      case RightParam =>  
+        if (openingParam <= 0)
+          Left(ParsingInvalidBracketSequence) 
+        else 
+          Right(lhs)
 
       // we have reached the end of the expression
       case EndOfExpr => 

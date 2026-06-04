@@ -23,9 +23,3 @@ def main(): Unit =
   // user quits the program
   println(s"Thanks for using ${Constants.AppName}. Have a nice day.")
 
-def eval(rawExpr: String): Either[CustomError, Double] =
-  for 
-    parsedTokens <- lex(rawExpr)
-    evaluation <- prattParsing(parsedTokens)
-  yield 
-    evaluation
