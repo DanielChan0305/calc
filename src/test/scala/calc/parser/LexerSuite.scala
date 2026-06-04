@@ -6,14 +6,14 @@ class LexerSuite extends munit.FunSuite {
   test("Integer and Double Literals") {
     assertEquals(
       lex("67 1.67 .67"),
-      Right(List(IntLiteral(67), DoubleLiteral(1.67), DoubleLiteral(0.67)))
+      Right(List(DoubleLiteral(67), DoubleLiteral(1.67), DoubleLiteral(0.67)))
     )
     assertEquals(
       lex("-67   -1.67     -.67"),
       Right(
         List(
           Opt('-'),
-          IntLiteral(67),
+          DoubleLiteral(67),
           Opt('-'),
           DoubleLiteral(1.67),
           Opt('-'),
@@ -23,7 +23,7 @@ class LexerSuite extends munit.FunSuite {
     )
     assertEquals(
       lex("---5 "),
-      Right(List(Opt('-'), Opt('-'), Opt('-'), IntLiteral(5)))
+      Right(List(Opt('-'), Opt('-'), Opt('-'), DoubleLiteral(5)))
     )
 
     assertEquals(lex("65.66.67"), Left(TokenizationInvalidNumericalValueError))
@@ -35,17 +35,17 @@ class LexerSuite extends munit.FunSuite {
       lex("1 + 2 - 3 * 4 / 5 ^ 6"),
       Right(
         List(
-          IntLiteral(1),
+          DoubleLiteral(1),
           Opt('+'),
-          IntLiteral(2),
+          DoubleLiteral(2),
           Opt('-'),
-          IntLiteral(3),
+          DoubleLiteral(3),
           Opt('*'),
-          IntLiteral(4),
+          DoubleLiteral(4),
           Opt('/'),
-          IntLiteral(5),
+          DoubleLiteral(5),
           Opt('^'),
-          IntLiteral(6)
+          DoubleLiteral(6)
         )
       )
     )
@@ -79,7 +79,7 @@ class LexerSuite extends munit.FunSuite {
   test("Parentheses") {
     assertEquals(lex("()"), Right(List(LeftParam, RightParam)))
     assertEquals(lex("(  )"), Right(List(LeftParam, RightParam)))
-    assertEquals(lex("(1)"), Right(List(LeftParam, IntLiteral(1), RightParam)))
+    assertEquals(lex("(1)"), Right(List(LeftParam, DoubleLiteral(1), RightParam)))
     assertEquals(
       lex("((x))"),
       Right(List(LeftParam, LeftParam, Ident("x"), RightParam, RightParam))
@@ -90,7 +90,7 @@ class LexerSuite extends munit.FunSuite {
     assertEquals(lex(""), Right(List.empty[Token]))
     assertEquals(lex("   "), Right(List.empty[Token]))
     assertEquals(lex("\t"), Right(List.empty[Token]))
-    assertEquals(lex("0"), Right(List(IntLiteral(0))))
+    assertEquals(lex("0"), Right(List(DoubleLiteral(0))))
     assertEquals(lex("."), Left(TokenizationInvalidNumericalValueError))
     assertEquals(lex("5."), Right(List(DoubleLiteral(5.0))))
   }
@@ -113,7 +113,7 @@ class LexerSuite extends munit.FunSuite {
           Ident("b"),
           RightParam,
           Opt('*'),
-          IntLiteral(2)
+          DoubleLiteral(2)
         )
       )
     )
