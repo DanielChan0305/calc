@@ -1,7 +1,7 @@
 package calc
 
-import calc.error.*
-import parser.*
+import calc.error.CustomError
+import parser.{lex, prattParsing, evaluateASTExpr}
 
 /** Evaluates the numerical value of a given expression
   * Entire pipeline : Lexing -> Parsing -> Building AST -> Evaluating AST

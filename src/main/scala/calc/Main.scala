@@ -1,11 +1,6 @@
 package calc
 
 import calc.config.Constants
-import calc.error.CustomError
-import calc.parser.{lex, Token}
-import scala.annotation.tailrec
-import calc.parser.printListTokens
-import calc.parser.prattParsing
 
 @main
 def main(): Unit =
