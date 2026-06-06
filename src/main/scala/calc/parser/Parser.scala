@@ -4,24 +4,33 @@ import calc.error.*
 import scala.compiletime.ops.double
 import calc.parser.IdentifierTable.getValueByName
 import calc.parser.IdentifierTable.isBuiltinConstant
-import calc.parser.IdentifierTable.isUserDefinedVariables
+import calc.parser.IdentifierTable.isUserVariables
 import calc.parser.IdentifierTable.isBuiltinFunc
 
-/** Helper function for implementing pratt parsing
+/**
+  * Operator precedence for binary operators
+  * e.g. 2 + 5; 6 - 7 
   *
-  * @param opt
-  * @return
   */
-def getOptPrec(opt: Char): (Int, Int) =
+def getInfixOptPrec(opt: Char): (Int, Int) =
   opt match
-    case '^' => (101, 100)
+    case '=' => (11, 10)
     case '+' => (20, 21)
     case '-' => (20, 21)
     case '*' => (30, 31)
     case '/' => (30, 31)
-    case '=' => (11, 10)
+    case '^' => (101, 100)
 
-def getInfixASTNode(symb: Char)(l: Expr, r: Expr): Either[CustomError, Expr] =
+/**
+  * Operator precedence for unary operators
+  *
+  */
+def getUnaryOptPrec(opt: Char): Int = 
+  opt match
+    case '+' => 50
+    case '-' => 50
+
+def getASTNode(symb: Char)(l: Expr, r: Expr): Either[CustomError, Expr] =
   symb match
     case '=' =>
       l match
@@ -40,17 +49,8 @@ def getInfixASTNode(symb: Char)(l: Expr, r: Expr): Either[CustomError, Expr] =
   * @return
   */
 def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
-
-  // check for empty expression
-  // println(tokens.length)
-  if (tokens.length == 0) {
-    Left(ParsingEmptyExpression)
-  } else {
     // helper functions and variables
     var pos = 0
-
-    var openingParen = 0
-
     // access the current character
     def cur: Token = if (pos < tokens.length) tokens(pos) else EndOfExpr
 
@@ -66,7 +66,7 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
         // lhs of the operand
         lhs <- parseLHS()
         // apply infix operation with calculated lhs
-        result <- parseInfixAndRHS(lhs, prec)
+        result <- parseInfixAndRhs(lhs, prec)
       yield result
 
     // LHS of each expression
@@ -75,12 +75,12 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
         // unary +
         case Opt('+') =>
           consume
-          parseExpr(50)
+          parseExpr(getUnaryOptPrec('+'))
 
         // unary -
         case Opt('-') =>
           consume
-          parseExpr(50).map(x => UnaryOpt('-', x))
+          parseExpr(getUnaryOptPrec('-')).map(x => UnaryOpt('-', x))
 
         case Opt('*') | Opt('/') | Opt('^') | Opt('=') =>
           Left(ParsingInvalidMathExpression)
@@ -95,15 +95,18 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
         // Function names
         case Ident(name) if isBuiltinFunc(name) =>
           consume
-          if cur == LeftParen then
+          if (cur == LeftParen) {
             consume           // eat '('
             for
               arg <- parseExpr(0)
-              _   <- if cur == RightParen then Right(consume) 
+              _   <- if (cur == RightParen) Right(consume) 
                     else Left(ParsingInvalidUsesofFunctions(name))
-            yield SingleArgFunc(name, arg)
-          else
+
+            yield 
+              SingleArgFunc(name, arg)
+          }else{
             Left(ParsingInvalidUsesofFunctions(name))
+          }
 
         // Constant and Variables
         case Ident(name) =>
@@ -114,7 +117,6 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
         // Leading (
         case LeftParen =>
           consume
-          openingParen += 1
 
           // evaluate expression
           parseExpr(0) match
@@ -123,9 +125,9 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
               // check bracket matching
               if (cur == RightParen)
                 consume
-                openingParen -= 1
                 Right(Paren(innerExpr))
-              else Left(ParsingInvalidBracketSequence)
+              else 
+                Left(ParsingInvalidBracketSequence)
 
         // Leading )
         case RightParen =>
@@ -137,16 +139,16 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
 
     // Handles the infix and the rhs
 
-    def parseInfixAndRHS(lhs: Expr, prec: Int): Either[CustomError, Expr] =
-      // Infix look ahead
+    def parseInfixAndRhs(lhs: Expr, prec: Int): Either[CustomError, Expr] =
       cur match
         // Exists an operator with sufficient binding power
-        case Opt(symb) if getOptPrec(symb)._1 >= prec =>
+        case Opt(symb) if getInfixOptPrec(symb)._1 >= prec =>
           // apply this operation
           consume
           for
-            acc_lhs <- bindToCurrentInfix(symb, lhs)
-            result  <- parseInfixAndRHS(acc_lhs, prec)
+            // after each infix binds successfully it will trigger the next infix
+            accLhs <- bindLhsToInfix(symb, lhs)
+            result  <- parseInfixAndRhs(accLhs, prec)
           yield result
 
         // Exists an operator but not enough binding power
@@ -159,10 +161,28 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
         case LeftParen =>
           for
             rhs    <- parseExpr(0)
-            result <- parseInfixAndRHS(BinOpt('*', lhs, rhs), prec)
+            result <- parseInfixAndRhs(BinOpt('*', lhs, rhs), prec)
           yield result
 
-        // Leading )
+        // Functions
+        // Handling cases like 2 sin(90)
+        // handling implicit multiplication
+        case Ident(name) if isBuiltinFunc(name) =>
+          for
+            rhs    <- parseExpr(0)
+            result <- parseInfixAndRhs(BinOpt('*', lhs, rhs), prec)
+          yield result
+
+        // Constant and Variables
+        // Handling cases like 2e
+        // implicit multplication
+        case Ident(name) =>
+          for
+            rhs    <- parseExpr(0)
+            result <- parseInfixAndRhs(BinOpt('*', lhs, rhs), prec)
+          yield result
+
+        // We have reached the end of a scope
         case RightParen =>
           Right(lhs)
 
@@ -173,34 +193,21 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
         case DoubleLiteral(_) =>
           Left(ParsingMissingOperator)
 
-
-        // Functions
-        // Handling cases like 2 sin(90)
-        // handling implicit multiplication
-        case Ident(name) if isBuiltinFunc(name) =>
-          for
-            rhs    <- parseExpr(0)
-            result <- parseInfixAndRHS(BinOpt('*', lhs, rhs), prec)
-          yield result
-
-        // Constant and Variables
-        // Handling cases like 2e
-        // implicit multplication
-        case Ident(name) =>
-          for
-            rhs    <- parseExpr(0)
-            result <- parseInfixAndRHS(BinOpt('*', lhs, rhs), prec)
-          yield result
-
-    def bindToCurrentInfix(symb: Char, lhs: Expr): Either[CustomError, Expr] =
+    def bindLhsToInfix(symb: Char, lhs: Expr): Either[CustomError, Expr] =
       for
-        rhs     <- parseExpr(getOptPrec(symb)._2)
-        ASTnode <- getInfixASTNode(symb)(lhs, rhs)
+        // get the right handside of the expression
+        rhs     <- parseExpr(getInfixOptPrec(symb)._2)
+        ASTnode <- getASTNode(symb)(lhs, rhs)
       yield ASTnode
 
-    parseExpr(0) match
-      case Left(err) => Left(err)
-      case Right(result) => 
-        if (pos < tokens.length) Left(ParsingInvalidBracketSequence)
-        else Right(result)
-  }
+    // entry point
+    if (tokens.length == 0) {
+      Left(ParsingEmptyExpression)
+    }else{
+      parseExpr(0) match
+        case Left(error) => Left(error)
+        case Right(evalVal) => 
+          // Handle trailing )
+          if (pos < tokens.length) Left(ParsingInvalidBracketSequence)
+          else Right(evalVal)
+    }

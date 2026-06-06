@@ -6,7 +6,7 @@ import munit.Location
 
 class EvaluationSuite extends munit.FunSuite {
   override def beforeEach(context: BeforeEach): Unit =
-    IdentifierTable.UserDefinedVariables = Map()
+    IdentifierTable.UserVariables = Map()
 
   def customAssertEqual(evalResult: Either[CustomError, Double], expectedResult: Either[CustomError, Double])(implicit
       loc: Location

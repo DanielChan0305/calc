@@ -8,7 +8,7 @@ object IdentifierTable:
     "e"  -> math.E
   )
 
-  var UserDefinedVariables: Map[String, Double] = Map()
+  var UserVariables: Map[String, Double] = Map()
 
   val BuiltinFunctions: Map[String, (Double) => Double] = Map(
     "sin" -> math.sin,
@@ -17,18 +17,20 @@ object IdentifierTable:
   )
 
   def isBuiltinConstant(name: String): Boolean = BuiltinConstants.isDefinedAt(name)
-  def isUserDefinedVariables(name: String): Boolean = UserDefinedVariables.isDefinedAt(name)
-
-  /** Helper function which checks whether the "name" is reserved for a function
-    *
-    * @return
-    */
+  def isUserVariables(name: String): Boolean = UserVariables.isDefinedAt(name)
   def isBuiltinFunc(name: String): Boolean = BuiltinFunctions.isDefinedAt(name)
 
+  /**
+    * Helper function which assigns numeric value to variable with a given name.
+    * 
+    * Returns error is the name collides with a builtin function.
+    *
+    */
   def assignValueToVariable(name: String, value: Double): Either[CustomError, Double] =
     if (isBuiltinFunc(name)) Left(ParsingInvalidUsesofFunctions(name))
+    
     else
-      UserDefinedVariables = UserDefinedVariables + (name -> value)
+      UserVariables = UserVariables + (name -> value)
       Right(value)
 
   def getValueByName(name: String): Either[CustomError, Double] =
@@ -36,8 +38,8 @@ object IdentifierTable:
       case _ if isBuiltinFunc(name) =>
         Left(ParsingInvalidUsesofFunctions(name))
 
-      case _ if isUserDefinedVariables(name) =>
-        Right(UserDefinedVariables(name))
+      case _ if isUserVariables(name) =>
+        Right(UserVariables(name))
 
       case _ if isBuiltinConstant(name) =>
         Right(BuiltinConstants(name))

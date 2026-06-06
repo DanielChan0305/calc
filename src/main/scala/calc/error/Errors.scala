@@ -29,7 +29,7 @@ case object ParsingInvalidSymbol extends CustomError:
   def message = "Invalid mathematical operator."
 
 case class ParsingInvalidUsesofFunctions(name: String) extends CustomError:
-  def message = s"Invalid uses of function $name."
+  def message = s"Invalid uses of function $name. Functions can't be assigned like variables."
 
 case class NameResolutionVariableDoesntExists(name: String) extends CustomError:
   def message = s"$name doesn't exists. Please ensure you have defined the variable before using it."
