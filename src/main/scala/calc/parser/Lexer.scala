@@ -1,20 +1,15 @@
 package calc.parser
 
-import calc.error.*
+import calc.error.CustomError
+import calc.error.TokenizationInvalidCharacterError
+import calc.error.TokenizationInvalidNumericalValueError
 import scala.annotation.tailrec
 
-/** Pretty printer for List[Tokens]
-  * @param List[Tokens]
-  */
-def printListTokens(tokens: List[Token]) =
-  for (token <- tokens)
-    println(token)
 
-/** Lexs the raw input string into tokens Returns error object is lexing was unsuccessful
+/** Lexs the raw input string into List[Token] 
+ * 
+ * Returns error object is lexing was unsuccessful
   *
-  * @param rawExpr
-  * @return
-  *   Either[CustomError, List[Tokens]]
   */
 def lex(rawExpr: String): Either[CustomError, List[Token]] =
   // looping through rawExpr

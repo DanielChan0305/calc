@@ -4,7 +4,8 @@ import calc.error.*
 import parser.*
 
 /** Evaluates the numerical value of a given expression
-  *
+  * Entire pipeline : Lexing -> Parsing -> Building AST -> Evaluating AST
+  * 
   * @param rawExpr
   * @return
   */

@@ -10,18 +10,18 @@ import calc.parser.prattParsing
 @main
 def main(): Unit =
   // main event loop
-  var rawExpr: String = scala.io.StdIn.readLine("> ")
+  var rawInput: String = scala.io.StdIn.readLine("> ")
 
-  while (rawExpr != "exit" && rawExpr != "quit")
-    val result = eval(rawExpr)
+  while (rawInput.trim() != "exit" && rawInput.trim() != "quit")
+    val exprVal = eval(rawInput)
 
-    result match
+    exprVal match
       case Left(error) =>
         println(s"Error: ${error.message}")
       case Right(value) =>
         println(value)
 
-    rawExpr = scala.io.StdIn.readLine("> ")
+    rawInput = scala.io.StdIn.readLine("> ")
 
   // user quits the program
   println(s"Thanks for using ${Constants.AppName}. Have a nice day.")
