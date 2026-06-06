@@ -61,13 +61,13 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
     def parseExpr(prec: Int): Either[CustomError, Expr] =
       for
         // lhs of the operand
-        lhs <- parsePrefix()
+        lhs <- parseLHS()
         // apply infix operation with calculated lhs
-        result <- loop(lhs, prec)
+        result <- parseInfixAndRHS(lhs, prec)
       yield result
 
     // LHS of each expression
-    def parsePrefix(): Either[CustomError, Expr] =
+    def parseLHS(): Either[CustomError, Expr] =
       cur match
         // unary +
         case Opt('+') =>
@@ -119,15 +119,17 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
           Left(ParsingInvalidMathExpression)
 
     // Handles the infix and the rhs
-    def loop(lhs: Expr, prec: Int): Either[CustomError, Expr] =
+
+    def parseInfixAndRHS(lhs: Expr, prec: Int): Either[CustomError, Expr] =
+      // Infix look ahead
       cur match
         // Exists an operator with sufficient binding power
         case Opt(symb) if getOptPrec(symb)._1 >= prec =>
           // apply this operation
           consume
           for
-            acc_lhs <- parseInfix(symb, lhs)
-            result  <- loop(acc_lhs, prec)
+            acc_lhs <- bindToCurrentInfix(symb, lhs)
+            result  <- parseInfixAndRHS(acc_lhs, prec)
           yield result
 
         // Exists an operator but not enough binding power
@@ -140,7 +142,7 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
         case LeftParen =>
           for
             rhs    <- parseExpr(0)
-            result <- loop(BinOpt('*', lhs, rhs), prec)
+            result <- parseInfixAndRHS(BinOpt('*', lhs, rhs), prec)
           yield result
 
         // Leading )
@@ -163,10 +165,10 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
         case Ident(_) =>
           for
             rhs    <- parseExpr(0)
-            result <- loop(BinOpt('*', lhs, rhs), prec)
+            result <- parseInfixAndRHS(BinOpt('*', lhs, rhs), prec)
           yield result
 
-    def parseInfix(symb: Char, lhs: Expr): Either[CustomError, Expr] =
+    def bindToCurrentInfix(symb: Char, lhs: Expr): Either[CustomError, Expr] =
       for
         rhs     <- parseExpr(getOptPrec(symb)._2)
         ASTnode <- getInfixASTNode(symb)(lhs, rhs)
