@@ -101,7 +101,7 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
               arg <- parseExpr(0)
               _   <- if cur == RightParen then Right(consume) 
                     else Left(ParsingInvalidUsesofFunctions(name))
-            yield singleArgFunc(name, arg)
+            yield SingleArgFunc(name, arg)
           else
             Left(ParsingInvalidUsesofFunctions(name))
 
