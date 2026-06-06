@@ -5,6 +5,9 @@ import calc.parser.IdentifierTable.getValueByName
 import calc.error.ParsingInvalidMathExpression
 import calc.error.ParsingInvalidFunctionName
 import calc.parser.IdentifierTable.assignValueToVariable
+import calc.parser.IdentifierTable.isBuiltinFunc
+import calc.parser.IdentifierTable.BuiltinFunctions
+import calc.error.ParsingInvalidUsesofFunctions
 
 sealed trait Expr
 
@@ -37,9 +40,10 @@ case class UnaryOpt(opt: Char, expr: Expr)         extends Expr:
 
 case class SingleArgFunc(name: String, param: Expr) extends Expr:
   def apply(param: Double): Either[CustomError, Double] =
-    name match
-      case "sin" => Right(math.sin(param))
-      case _     => Left(ParsingInvalidFunctionName(name))
+    if (isBuiltinFunc(name))
+      Right(BuiltinFunctions(name)(param))
+    else
+      Left(ParsingInvalidUsesofFunctions(name))
     
 
 case class Assign(name: String, expr: Expr)        extends Expr

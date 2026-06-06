@@ -83,6 +83,45 @@ class EvaluationSuite extends munit.FunSuite {
     customAssertEqual(eval("pi"), Right(math.Pi))
   }
 
+  // ── Builtin functions ──
+  test("sin function") {
+    customAssertEqual(eval("sin(0)"), Right(0.0))
+    customAssertEqual(eval("sin(pi / 2)"), Right(1.0))
+    customAssertEqual(eval("sin(pi)"), Right(0.0))
+    customAssertEqual(eval("sin(3 * pi / 2)"), Right(-1.0))
+  }
+
+  test("cos function") {
+    customAssertEqual(eval("cos(0)"), Right(1.0))
+    customAssertEqual(eval("cos(pi)"), Right(-1.0))
+    customAssertEqual(eval("cos(pi / 2)"), Right(0.0))
+  }
+
+  test("builtin functions in expressions") {
+    customAssertEqual(eval("sin(0) + cos(0)"), Right(1.0))
+    customAssertEqual(eval("2 * sin(pi / 2)"), Right(2.0))
+    customAssertEqual(eval("sin(pi / 4) ^ 2 + cos(pi / 4) ^ 2"), Right(1.0))
+  }
+
+  test("builtin functions with implicit multiplication") {
+    customAssertEqual(eval("2 sin(pi / 2)"), Right(2.0))
+    customAssertEqual(eval("pi sin(pi / 2)"), Right(math.Pi))
+  }
+
+  test("builtin functions missing parentheses") {
+    customAssertEqual(eval("sin"), Left(ParsingInvalidUsesofFunctions("sin")))
+    customAssertEqual(eval("cos pi"), Left(ParsingInvalidUsesofFunctions("cos")))
+  }
+
+  test("builtin functions as variables") {
+    customAssertEqual(eval("x = sin"), Left(ParsingInvalidUsesofFunctions("sin")))
+  }
+
+  test("builtin functions with nested parentheses") {
+    customAssertEqual(eval("sin((pi / 2))"), Right(1.0))
+    customAssertEqual(eval("cos((pi))"), Right(-1.0))
+  }
+
   // ── Unary operators ──
   test("unary minus") {
     customAssertEqual(eval("-5"), Right(-5.0))
