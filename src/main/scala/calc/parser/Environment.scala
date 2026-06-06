@@ -16,27 +16,30 @@ object IdentifierTable:
     // ("log" -> )
   )
 
+  def isBuiltinConstant(name: String): Boolean = BuiltinConstants.isDefinedAt(name)
+  def isUserDefinedVariables(name: String): Boolean = UserDefinedVariables.isDefinedAt(name)
+
   /** Helper function which checks whether the "name" is reserved for a function
     *
     * @return
     */
-  def isNameReservedForFuncs(name: String): Boolean = BuiltinFunctions.isDefinedAt(name)
+  def isBuiltinFunc(name: String): Boolean = BuiltinFunctions.isDefinedAt(name)
 
   def assignValueToVariable(name: String, value: Double): Either[CustomError, Double] =
-    if (isNameReservedForFuncs(name)) Left(NameResolutionVariableNameShadowsFunctionName(name))
+    if (isBuiltinFunc(name)) Left(ParsingInvalidUsesofFunctions(name))
     else
       UserDefinedVariables = UserDefinedVariables + (name -> value)
       Right(value)
 
   def getValueByName(name: String): Either[CustomError, Double] =
     name match
-      case _ if isNameReservedForFuncs(name) =>
-        Left(NameResolutionVariableNameShadowsFunctionName(name))
+      case _ if isBuiltinFunc(name) =>
+        Left(ParsingInvalidUsesofFunctions(name))
 
-      case _ if UserDefinedVariables.isDefinedAt(name) =>
+      case _ if isUserDefinedVariables(name) =>
         Right(UserDefinedVariables(name))
 
-      case _ if BuiltinConstants.isDefinedAt(name) =>
+      case _ if isBuiltinConstant(name) =>
         Right(BuiltinConstants(name))
 
       case _ =>

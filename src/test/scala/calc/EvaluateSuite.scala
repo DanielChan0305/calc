@@ -158,7 +158,7 @@ class EvaluationSuite extends munit.FunSuite {
   }
 
   test("invalid variable name") {
-    customAssertEqual(eval("sin"), Left(NameResolutionVariableNameShadowsFunctionName("sin")))
+    customAssertEqual(eval("sin"), Left(ParsingInvalidUsesofFunctions("sin")))
   }
 
   test("variable doesn't exists") {
@@ -226,7 +226,7 @@ class EvaluationSuite extends munit.FunSuite {
   }
 
   test("error: assign to reserved function name") {
-    customAssertEqual(eval("sin = 5"), Left(NameResolutionVariableNameShadowsFunctionName("sin")))
-    customAssertEqual(eval("cos = 3"), Left(NameResolutionVariableNameShadowsFunctionName("cos")))
+    customAssertEqual(eval("sin = 5"), Left(ParsingInvalidUsesofFunctions("sin")))
+    customAssertEqual(eval("cos = 3"), Left(ParsingInvalidUsesofFunctions("cos")))
   }
 }

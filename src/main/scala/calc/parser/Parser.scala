@@ -3,6 +3,9 @@ package calc.parser
 import calc.error.*
 import scala.compiletime.ops.double
 import calc.parser.IdentifierTable.getValueByName
+import calc.parser.IdentifierTable.isBuiltinConstant
+import calc.parser.IdentifierTable.isUserDefinedVariables
+import calc.parser.IdentifierTable.isBuiltinFunc
 
 /** Helper function for implementing pratt parsing
   *
@@ -89,8 +92,22 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
           consume
           Right(Num(value))
 
+        // Function names
+        case Ident(name) if isBuiltinFunc(name) =>
+          consume
+          if cur == LeftParen then
+            consume           // eat '('
+            for
+              arg <- parseExpr(0)
+              _   <- if cur == RightParen then Right(consume) 
+                    else Left(ParsingInvalidUsesofFunctions(name))
+            yield singleArgFunc(name, arg)
+          else
+            Left(ParsingInvalidUsesofFunctions(name))
+
+        // Constant and Variables
         case Ident(name) =>
-          // calls API from NameTable
+          //println("hello")
           consume
           Right(Var(name))
 
@@ -147,10 +164,7 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
 
         // Leading )
         case RightParen =>
-          if (openingParen <= 0)
-            Left(ParsingInvalidBracketSequence)
-          else
-            Right(lhs)
+          Right(lhs)
 
         // we have reached the end of the expression
         case EndOfExpr =>
@@ -159,10 +173,20 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
         case DoubleLiteral(_) =>
           Left(ParsingMissingOperator)
 
-        //
+
+        // Functions
+        // Handling cases like 2 sin(90)
+        // handling implicit multiplication
+        case Ident(name) if isBuiltinFunc(name) =>
+          for
+            rhs    <- parseExpr(0)
+            result <- parseInfixAndRHS(BinOpt('*', lhs, rhs), prec)
+          yield result
+
+        // Constant and Variables
         // Handling cases like 2e
         // implicit multplication
-        case Ident(_) =>
+        case Ident(name) =>
           for
             rhs    <- parseExpr(0)
             result <- parseInfixAndRHS(BinOpt('*', lhs, rhs), prec)
@@ -174,5 +198,9 @@ def prattParsing(tokens: List[Token]): Either[CustomError, Expr] =
         ASTnode <- getInfixASTNode(symb)(lhs, rhs)
       yield ASTnode
 
-    parseExpr(0)
+    parseExpr(0) match
+      case Left(err) => Left(err)
+      case Right(result) => 
+        if (pos < tokens.length) Left(ParsingInvalidBracketSequence)
+        else Right(result)
   }

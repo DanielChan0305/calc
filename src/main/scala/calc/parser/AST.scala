@@ -3,6 +3,7 @@ package calc.parser
 import calc.error.CustomError
 import calc.parser.IdentifierTable.getValueByName
 import calc.error.ParsingInvalidMathExpression
+import calc.error.ParsingInvalidFunctionName
 import calc.parser.IdentifierTable.assignValueToVariable
 
 sealed trait Expr
@@ -10,8 +11,12 @@ sealed trait Expr
 case class Num(value: Double)                      extends Expr
 case class Var(name: String)                       extends Expr
 case class Paren(expr: Expr)                       extends Expr
+
 case class BinOpt(opt: Char, lhs: Expr, rhs: Expr) extends Expr
 case class UnaryOpt(opt: Char, expr: Expr)         extends Expr
+
+case class singleArgFunc(name: String, param1: Expr) extends Expr
+
 case class Assign(name: String, expr: Expr)        extends Expr
 
 def applyBinOpt(symb: Char)(l: Double, r: Double): Double =
@@ -44,6 +49,16 @@ def evaluateASTExpr(ASTExpr: Expr): Either[CustomError, Double] =
           case '+' => Right(expr_val)
           case _   => Left(ParsingInvalidMathExpression)
       yield result
+
+
+    case singleArgFunc(name, param) =>
+      for
+        value  <- evaluateASTExpr(param)
+        result <- name match
+          case "sin" => Right(math.sin(value))
+          case _     => Left(ParsingInvalidFunctionName(name))
+      yield result
+        
 
     case Assign(name, expr) =>
       for

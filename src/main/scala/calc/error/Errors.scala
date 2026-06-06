@@ -28,8 +28,11 @@ case object ParsingEmptyExpression extends CustomError:
 case object ParsingInvalidSymbol extends CustomError:
   def message = "Invalid mathematical operator."
 
-case class NameResolutionVariableNameShadowsFunctionName(name: String) extends CustomError:
-  def message = s"Invalid variable name. $name is a reserved word for mathematic functions."
+case class ParsingInvalidUsesofFunctions(name: String) extends CustomError:
+  def message = s"Invalid uses of function $name."
 
 case class NameResolutionVariableDoesntExists(name: String) extends CustomError:
   def message = s"$name doesn't exists. Please ensure you have defined the variable before using it."
+
+case class ParsingInvalidFunctionName(name: String) extends CustomError:
+  def message = s"Invalid function name. The function $name doesn't exists or is not supported."
