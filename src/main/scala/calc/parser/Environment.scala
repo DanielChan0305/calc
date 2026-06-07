@@ -38,6 +38,8 @@ object IdentifierTable:
     "abs" -> math.abs
   )
 
+  def getBuiltinIdentifiers(): Iterable[String] = BuiltinConstants.keys ++ BuiltinFunctions.keys 
+
   def isBuiltinConstant(name: String): Boolean = BuiltinConstants.isDefinedAt(name)
   def isUserVariables(name: String): Boolean = UserVariables.isDefinedAt(name)
   def isBuiltinFunc(name: String): Boolean = BuiltinFunctions.isDefinedAt(name)
