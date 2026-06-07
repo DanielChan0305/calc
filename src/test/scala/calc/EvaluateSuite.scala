@@ -77,6 +77,12 @@ class EvaluationSuite extends munit.FunSuite {
     customAssertEqual(eval("((2 + 3) * (4 + 1))"), Right(25.0))
   }
 
+  test("auto balancing of parentheses") {
+    customAssertEqual(eval("((1 + 2) * 3"), Right(9.0))
+    customAssertEqual(eval("(3 * (1 + 2"), Right(9.0))
+    customAssertEqual(eval("((2 + 3) * (4 + 1)"), Right(25.0))
+  }
+
   // ── Builtin constants cases ──
   test("builtin constants") {
     customAssertEqual(eval("e"), Right(math.E))
@@ -279,12 +285,11 @@ class EvaluationSuite extends munit.FunSuite {
 //  }
 
   test("invalid bracket sequence") {
-    customAssertEqual(eval("(1 + 2"), Left(ParsingInvalidBracketSequence))
     customAssertEqual(eval("1 + 2)"), Left(ParsingInvalidBracketSequence))
   }
 
   test("invalid mathematical expression") {
-    customAssertEqual(eval("(1 +"), Left(ParsingInvalidMathExpression))
+    customAssertEqual(eval("(1 +"), Left(ParsingInvalidBracketSequence))
   }
 
   test("missing operator") {

@@ -35,5 +35,8 @@ def autoBalanceParen(rawExpr: String): Either[CustomError, String] =
 
   numOfUnmatchedOpenParen match 
     case Left(error) => Left(error)
-    case Right(value) =>
+    case Right(value) if value < 0 =>
+      Left(ParsingInvalidBracketSequence)
+      
+    case Right(value) if value >= 0 =>
       Right(rawExpr + ")" * value)
