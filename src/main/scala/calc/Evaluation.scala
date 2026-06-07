@@ -1,7 +1,7 @@
 package calc
 
 import calc.error.CustomError
-import parser.{lex, prattParsing, evaluateASTExpr}
+import parser.{autoBalanceParen, lex, prattParsing, evaluateASTExpr}
 
 /** Evaluates the numerical value of a given expression
   * Entire pipeline : Lexing -> Parsing -> Building AST -> Evaluating AST
@@ -11,7 +11,8 @@ import parser.{lex, prattParsing, evaluateASTExpr}
   */
 def eval(rawExpr: String): Either[CustomError, Double] =
   for
-    parsedTokens <- lex(rawExpr)
+    balancedExpr <- autoBalanceParen(rawExpr)
+    parsedTokens <- lex(balancedExpr)
     ASTExpr      <- prattParsing(parsedTokens)
     value <- evaluateASTExpr(ASTExpr)
   yield value

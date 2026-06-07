@@ -1,7 +1,7 @@
 package calc
 
 import calc.config.Constants
-import org.jline.reader.{LineReaderBuilder}
+import org.jline.reader.{LineReaderBuilder, LineReader}
 import org.jline.terminal.{TerminalBuilder}
 import org.jline.reader.impl.completer.StringsCompleter
 import calc.parser.IdentifierTable.getBuiltinIdentifiers
@@ -12,6 +12,8 @@ def main(): Unit =
   val terminal = TerminalBuilder.builder().build()
   val completer = StringsCompleter(getBuiltinIdentifiers().toSeq*);
   val reader = LineReaderBuilder.builder()
+                                .variable(LineReader.BLINK_MATCHING_PAREN, false)   // ← turn it off
+
                                 .terminal(terminal)
                                 .completer(completer)
                                 .build()
