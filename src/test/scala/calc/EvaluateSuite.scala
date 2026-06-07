@@ -122,6 +122,111 @@ class EvaluationSuite extends munit.FunSuite {
     customAssertEqual(eval("cos((pi))"), Right(-1.0))
   }
 
+  // ── Trigonometric: tan, csc, sec, cot ──
+  test("tan function") {
+    customAssertEqual(eval("tan(0)"), Right(0.0))
+    customAssertEqual(eval("tan(pi / 4)"), Right(1.0))
+  }
+
+  test("csc function") {
+    customAssertEqual(eval("csc(pi / 2)"), Right(1.0))
+    customAssertEqual(eval("csc(pi / 6)"), Right(2.0))
+  }
+
+  test("sec function") {
+    customAssertEqual(eval("sec(0)"), Right(1.0))
+    customAssertEqual(eval("sec(pi / 3)"), Right(2.0))
+  }
+
+  test("cot function") {
+    customAssertEqual(eval("cot(pi / 4)"), Right(1.0))
+    customAssertEqual(eval("cot(pi / 2)"), Right(0.0))
+  }
+
+  // ── Hyperbolic functions ──
+  test("sinh function") {
+    customAssertEqual(eval("sinh(0)"), Right(0.0))
+  }
+
+  test("cosh function") {
+    customAssertEqual(eval("cosh(0)"), Right(1.0))
+  }
+
+  test("tanh function") {
+    customAssertEqual(eval("tanh(0)"), Right(0.0))
+  }
+
+  // ── Inverse trigonometric functions ──
+  test("asin function") {
+    customAssertEqual(eval("asin(0)"), Right(0.0))
+    customAssertEqual(eval("asin(1)"), Right(math.Pi / 2))
+  }
+
+  test("acos function") {
+    customAssertEqual(eval("acos(1)"), Right(0.0))
+    customAssertEqual(eval("acos(0)"), Right(math.Pi / 2))
+  }
+
+  test("atan function") {
+    customAssertEqual(eval("atan(0)"), Right(0.0))
+    customAssertEqual(eval("atan(1)"), Right(math.Pi / 4))
+  }
+
+  test("acsc function") {
+    customAssertEqual(eval("acsc(1)"), Right(math.Pi / 2))
+  }
+
+  test("asec function") {
+    customAssertEqual(eval("asec(1)"), Right(0.0))
+  }
+
+  test("acot function") {
+    customAssertEqual(eval("acot(1)"), Right(math.Pi / 4))
+  }
+
+  // ── Logarithmic functions ──
+  test("ln function") {
+    customAssertEqual(eval("ln(1)"), Right(0.0))
+    customAssertEqual(eval("ln(e)"), Right(1.0))
+  }
+
+  test("log2 function") {
+    customAssertEqual(eval("log2(1)"), Right(0.0))
+    customAssertEqual(eval("log2(2)"), Right(1.0))
+    customAssertEqual(eval("log2(8)"), Right(3.0))
+  }
+
+  test("log10 function") {
+    customAssertEqual(eval("log10(1)"), Right(0.0))
+    customAssertEqual(eval("log10(10)"), Right(1.0))
+    customAssertEqual(eval("log10(100)"), Right(2.0))
+  }
+
+  // ── sqrt, ceil, floor, abs ──
+  test("sqrt function") {
+    customAssertEqual(eval("sqrt(0)"), Right(0.0))
+    customAssertEqual(eval("sqrt(4)"), Right(2.0))
+    customAssertEqual(eval("sqrt(9)"), Right(3.0))
+  }
+
+  test("ceil function") {
+    customAssertEqual(eval("ceil(2.3)"), Right(3.0))
+    customAssertEqual(eval("ceil(2.0)"), Right(2.0))
+    customAssertEqual(eval("ceil(-2.3)"), Right(-2.0))
+  }
+
+  test("floor function") {
+    customAssertEqual(eval("floor(2.7)"), Right(2.0))
+    customAssertEqual(eval("floor(2.0)"), Right(2.0))
+    customAssertEqual(eval("floor(-2.7)"), Right(-3.0))
+  }
+
+  test("abs function") {
+    customAssertEqual(eval("abs(5)"), Right(5.0))
+    customAssertEqual(eval("abs(-5)"), Right(5.0))
+    customAssertEqual(eval("abs(0)"), Right(0.0))
+  }
+
   // ── Unary operators ──
   test("unary minus") {
     customAssertEqual(eval("-5"), Right(-5.0))
